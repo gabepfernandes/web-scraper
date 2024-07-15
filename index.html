@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netshoes Web Scraper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        form input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        form button {
+            display: inline-block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #0056b3;
+        }
+
+        .product {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .product h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product img {
+            max-width: 200px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .product p {
+            color: #555;
+            font-size: 16px;
+        }
+
+        .product p strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Netshoes Web Scraper</h1>
+    <form id="scraper-form">
+        <label for="url">URL do Produto:</label>
+        <input type="text" id="url" name="url" required>
+        <button type="submit">Buscar Dados</button>
+    </form>
+    <div id="product" class="product"></div>
+
+    <script>
+        async function fetchProductData(url) {
+            const response = await fetch(`http://localhost:3000/api/product?url=${encodeURIComponent(url)}`);
+            return await response.json();
+        }
+
+        document.getElementById('scraper-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            const data = await fetchProductData(url);
+            if (data) {
+                document.getElementById('product').innerHTML = `
+                    <h2>${data.title}</h2>
+                    <p><strong>Preço:</strong> ${data.price}</p>
+                    <img src="${data.image}" alt="${data.title}">
+                    <p><strong>Descrição:</strong> ${data.description}</p>
+                `;
+            } else {
+                document.getElementById('product').innerHTML = `<p>Não foi possível obter os dados do produto.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
