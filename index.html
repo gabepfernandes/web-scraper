@@ -89,6 +89,16 @@
         .product p strong {
             color: #333;
         }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+
+        .loading {
+            color: #007BFF;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -98,27 +108,66 @@
         <input type="text" id="url" name="url" required>
         <button type="submit">Buscar Dados</button>
     </form>
+    <div id="status" class="loading"></div>
     <div id="product" class="product"></div>
 
     <script>
         async function fetchProductData(url) {
-            const response = await fetch(`http://localhost:3000/api/product?url=${encodeURIComponent(url)}`);
-            return await response.json();
+            try {
+                const response = await fetch(`http://localhost:3000/api/product?url=${encodeURIComponent(url)}`);
+                
+                // Verifica se a resposta da API foi bem-sucedida
+                if (!response.ok) {
+                    throw new Error(`Erro ao buscar dados: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+
+                // Verifica se houve erro nos dados retornados
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                return data;
+            } catch (error) {
+                // Retorna o erro para ser tratado
+                return { error: error.message };
+            }
         }
 
         document.getElementById('scraper-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Reseta o estado da UI
+            document.getElementById('status').innerHTML = '';
+            document.getElementById('product').innerHTML = '';
+
             const url = document.getElementById('url').value;
+
+            // Verifica se a URL está no formato correto
+            if (!url || !url.startsWith('http')) {
+                document.getElementById('status').innerHTML = '<p class="error">Por favor, insira uma URL válida.</p>';
+                return;
+            }
+
+            // Exibe o status de carregamento
+            document.getElementById('status').innerHTML = '<p class="loading">Buscando dados do produto...</p>';
+
+            // Busca os dados do produto
             const data = await fetchProductData(url);
-            if (data) {
+
+            // Verifica se houve erro e exibe a mensagem
+            if (data.error) {
+                document.getElementById('status').innerHTML = `<p class="error">${data.error}</p>`;
+            } else {
+                // Exibe os dados do produto
+                document.getElementById('status').innerHTML = '';
                 document.getElementById('product').innerHTML = `
                     <h2>${data.title}</h2>
                     <p><strong>Preço:</strong> ${data.price}</p>
                     <img src="${data.image}" alt="${data.title}">
                     <p><strong>Descrição:</strong> ${data.description}</p>
                 `;
-            } else {
-                document.getElementById('product').innerHTML = `<p>Não foi possível obter os dados do produto.</p>`;
             }
         });
     </script>
